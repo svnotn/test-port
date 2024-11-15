@@ -10,7 +10,9 @@ import (
 	"github.com/svnotn/test-port/port-service/internal/domain"
 )
 
-const label = "[PORT_IN ]: \t%s(%d, %d)"
+const (
+	label = "[PORT_IN ]: \t%s(%d, %d)"
+)
 
 type Port struct {
 	id    int

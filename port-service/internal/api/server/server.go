@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/svnotn/test-port/port-service/internal/api/server/handler"
@@ -15,7 +14,7 @@ import (
 )
 
 const (
-	label = "[SERVER]: \t%s"
+	label = "[SERVER]: \t"
 )
 
 type Server struct {
@@ -42,20 +41,20 @@ func (s *Server) Start(ctx context.Context) {
 	go func() {
 		defer cancel()
 
-		log.Info(fmt.Sprintf(label, "starting on port: "), s.config.Port)
+		log.Info(label, "starting on port: ", s.config.Port)
 
 		err := s.httpServer.ListenAndServe(":" + strconv.Itoa(s.config.Port))
 		if err != nil {
-			log.Fatal(fmt.Sprintf(label, err))
+			log.Fatal(label, err)
 		}
 	}()
 
 	<-ctx.Done()
 
 	if err := s.httpServer.Shutdown(); err != nil {
-		log.Error(fmt.Sprintf(label, err))
+		log.Error(label, err)
 	}
-	log.Info(fmt.Sprintf(label, "stop"))
+	log.Info(label, "stop")
 }
 
 func (s *Server) initHandlers() {

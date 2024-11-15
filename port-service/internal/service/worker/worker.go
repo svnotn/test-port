@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	label = "[WORKER]: \t%s"
+	label = "[WORKER]: \t"
 )
 
 type Worker struct {
@@ -37,15 +37,15 @@ func (w *Worker) Send(cmd *model.Command) {
 }
 
 func (w *Worker) Run(ctx context.Context) {
-	log.Info(fmt.Sprintf(label, "start"))
+	log.Info(label, "start")
 	for {
 		select {
 		case cmd := <-w.ch:
 			if err := execute(w.repo, cmd, w.attempts); err != nil {
-				log.Error(fmt.Sprintf(label, err.Error()))
+				log.Error(label, err.Error())
 			}
 		case <-ctx.Done():
-			log.Info(fmt.Sprintf(label, "stop"))
+			log.Info(label, "stop")
 			return
 		}
 	}
@@ -56,7 +56,7 @@ func execute(repo repository.PortRepository, cmd *model.Command, attempts int) e
 	status := false
 
 	defer func() {
-		cmd.SetResult(model.Result{status, err})
+		cmd.SetResult(model.Result{Ok: status, Err: err})
 	}()
 
 	if err != nil {
@@ -66,7 +66,7 @@ func execute(repo repository.PortRepository, cmd *model.Command, attempts int) e
 	for i := range attempts {
 		err = port.Open()
 		if port.State() != domain.Opened || err != nil {
-			log.Error(fmt.Sprintf(label, fmt.Sprintf("can't open port {%d, %d}. retry %d", cmd.Action, cmd.ID, i)))
+			log.Error(label, fmt.Sprintf("can't open port {%d, %d}. retry %d", cmd.Action, cmd.ID, i))
 		} else {
 			break
 		}
@@ -77,7 +77,7 @@ func execute(repo repository.PortRepository, cmd *model.Command, attempts int) e
 
 	defer func() {
 		if err = port.Close(); err != nil {
-			log.Error(fmt.Sprintf(label, err.Error()))
+			log.Error(label, err.Error())
 		}
 	}()
 

@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -15,7 +14,6 @@ import (
 	"github.com/svnotn/test-port/port-service/internal/model"
 	"github.com/svnotn/test-port/port-service/internal/repository"
 	"github.com/svnotn/test-port/port-service/internal/service/worker"
-	"github.com/svnotn/test-port/port-service/internal/storage"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -43,17 +41,18 @@ func newApp(config *config.Config) *application {
 	return app
 }
 
-func (app *application) Setup(config *config.Config) {
-	fn := func(count int, portType model.PortType, storage storage.Storage) {
-		for i := range count {
-			err := app.repo.Add(model.Port{Type: portType, ID: i})
-			if err != nil {
-				log.Fatal(err)
-			}
+func (app *application) fillRep(count int, portType model.PortType) {
+	for i := range count {
+		err := app.repo.Add(model.Port{Type: portType, ID: i})
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
-	fn(config.Port.CountIn, model.TypeIN, app.repo)
-	fn(config.Port.CountOut, model.TypeOUT, app.repo)
+}
+
+func (app *application) Setup(config *config.Config) {
+	app.fillRep(config.Port.CountIn, model.TypeIN)
+	app.fillRep(config.Port.CountIn, model.TypeOUT)
 }
 
 func (app *application) Run(ctx context.Context) error {
@@ -89,7 +88,7 @@ func (app *application) Run(ctx context.Context) error {
 		return err
 	}
 
-	log.Info(fmt.Sprintf(label, "stop"))
+	log.Info(label, "stop")
 	return nil
 }
 
@@ -99,7 +98,7 @@ func Start() {
 
 	cfg, err := config.New()
 	if err != nil {
-		log.Fatal(fmt.Sprintf(label, err))
+		log.Fatal(label, err)
 	}
 	cfg.Print()
 
